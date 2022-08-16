@@ -10,7 +10,7 @@ For this tutorial, we will take the following case:
 ![Drag Racing](etc/RESTful-tutorial.png)
 
 ## Installation
-First install and run the **API** : https://github.com/llucbono/Edge_v3
+First downlaod, install and run the **API** : https://github.com/llucbono/Edge_v3
 ```bash
 docker-compose -f local.yml up
 ```
@@ -22,13 +22,13 @@ docker run -p 5000:5000 -d app_demo_prediction
 ## Demo
 Then run the data generation application **B** :
 ```bash
-python app_demo_generation.py
+python demoAppDataGenerator.py
 ```
 > The API is now receiving a series of random data at regular intervals.
 
 Then run the test user **C** :
 ```bash
-python app_demo_user.py
+python demoAppUser.py
 ```
 > The user asks the API for the application's prediction about the data sent just before.
 
@@ -37,6 +37,7 @@ Each of your applications should have the following form:
 ```python
 from appInterface import ApplicationInterface
 from flask import Flask
+from multiprocessing import Process
 
 URL = "URL WHERE THE API IS RUNNING"
 LOCAL_IP = "IP OF THE COMPUTER WHERE THIS APP IS RUNNING"

@@ -1,6 +1,9 @@
 # Abstraction for send and get data from application
-from code import interact
 from appInterface import ApplicationInterface
+from flask import Flask
+import threading
+import atexit
+from multiprocessing import Process
 
 # For prediction task
 import pandas as pd
@@ -9,11 +12,6 @@ import datetime as dt
 from darts import TimeSeries
 from darts.models import ExponentialSmoothing
 
-# For the application to be called by the API or others nodes
-from flask import Flask
-from multiprocessing import Process
-import socket
-import atexit
 """
 ========================================================
 Note:
@@ -42,19 +40,29 @@ https://github.com/jbaudru & https://github.com/llucbono
 URL = "http://192.168.0.219:8000/ec/payloads"
 LOCAL_IP = "192.168.0.219" #socket.gethostbyname(socket.gethostname())#"192.168.0.219" #IP OF THNE APP
 APPNAME="demoAppPrediction"
-interface = ApplicationInterface(URL)
 
-# TO LISTEN FROM CALL FROM API
+interface = ApplicationInterface(URL)
 app = Flask(__name__)
 
-def startCommunication(app):
-    #server = Process(target=app.run(host=LOCAL_IP, debug= True, port=5000))
+def startCommunication():
     server = Process(target=app.run(debug= True, port=5000))
     server.start()    
 
 def stopCommunication(server):
     server.terminate()
     server.join()
+
+def hiSignalToAPI():
+    try:
+        interface.postIP(LOCAL_IP,'12','appIP',APPNAME)# SEND THE IP OF THE APP TO THE API
+        print('[+] IP send to the API', LOCAL_IP)
+    except:
+        print('DEBUG: Error sending IP to API')
+
+def byeSignalToAPI():
+    stopCommunication(app)
+    interface.deleteAppIPbyName(APPNAME)
+    print('[+] IP remove from API')
 
 @app.route('/hi')
 def query_example():
@@ -81,19 +89,9 @@ def run_app():
     return res
 
 def main():
-    try:
-        interface.postIP(LOCAL_IP,'12','appIP',APPNAME)# SEND THE IP OF THE APP TO THE API
-        print('[+] IP send to the API', LOCAL_IP)
-    except:
-        print('DEBUG: Error sending IP')
-    startCommunication(app)
-
-
-def exit_handler():
-    stopCommunication(app)
-    interface.deleteAppIPbyName(APPNAME)
-    print('[+] IP remove from API')
-
+    thread = threading.Thread(target=hiSignalToAPI)
+    thread.start()
+    startCommunication()
 
 # Just a random function to demonstrate the principle
 # YOUR CODE HERE
@@ -128,3 +126,6 @@ def makePrediction(data):
 
 if __name__ == '__main__':
     main()
+    byeSignalToAPI()
+
+atexit.register(byeSignalToAPI)

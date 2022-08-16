@@ -9,5 +9,6 @@ RUN pip install --pre flask flask-restful numpy pandas requests darts
 WORKDIR /usr/src/app
 COPY . .
 
-CMD [ "python3", "-m" , "flask", "--app=demoAppPrediction", "--debug", "run", "--host=0.0.0.0"]
-#CMD python demoAppPrediction.py 
+CMD [ "python", "-m" , "flask", "--app=demoAppPrediction", "--debug", "run", "--host=0.0.0.0"]
+#CMD [ "python", "demoAppPrediction.py"]
+
