@@ -14,11 +14,12 @@ First downlaod, install and run the **API** : https://github.com/llucbono/Edge_v
 ```bash
 docker-compose -f local.yml up
 ```
-Then install and run the data presdiction application **A**:
+Then install and run the data prediction application **A**:
 ```bash
 docker build -t app_demo_prediction .
 docker run -p 5000:5000 -d app_demo_prediction
 ```
+Go the http://localhost:5000/hi to see if the prediction application **A** is working fine.
 ## Demo
 Then run the data generation application **B** :
 ```bash

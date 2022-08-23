@@ -9,6 +9,7 @@ from multiprocessing import Process
 import pandas as pd
 import random
 import datetime as dt
+from datetime import timedelta, date
 from darts import TimeSeries
 from darts.models import ExponentialSmoothing
 
@@ -96,18 +97,24 @@ def main():
 # Just a random function to demonstrate the principle
 # YOUR CODE HERE
 def makePrediction(data):
-    print("[+] Making predictions")
-    temp = []; date = []; df = pd.DataFrame()
+    print("[+] Making predictions based on the data stored in the API")
+    temp = []; dates = []; df = pd.DataFrame()
     for dat in data:
         temp.append(dat['values'][0]['value'])
         dat = dt.datetime.fromtimestamp(dat['values'][0]['date']).strftime('%Y-%m-%d')
-        date.append(dat)
-    df["date"]=date; df["temp"]=temp
+        dates.append(dat)
+
+    df["date"]=dates; df["temp"]=temp
     df = df.drop_duplicates(subset=['date'])
+    
     size_pred = 7 # Number of day
 
-    end = str(dt.date(2000,4,9) + dt.timedelta(days=14)).replace("-","")
-    times = pd.date_range('20000101', end, freq="D")
+    today = date.today()
+    d1 = today.strftime("%Y-%m-%d")
+    lastweek = (today - timedelta(days=14))
+
+    #end = str(dt.date(2000,4,9) + dt.timedelta(days=14)).replace("-","")
+    times = pd.date_range(str(lastweek).replace("-",""), str(d1).replace("-",""), freq="D")
 
     series = TimeSeries.from_dataframe(df, 'date', 'temp', fill_missing_dates=True, freq=None)
     train, val = series[:-size_pred], series[-size_pred:]
@@ -118,11 +125,10 @@ def makePrediction(data):
     model.fit(train)
     prediction = model.predict(len(val), num_samples=len(times))
 
-    ind = random.randint(0,len(prediction.values()-1))
     try:
-        return prediction.values()[ind][0]
+        return prediction.values()
     except:
-        return 666
+        return None
 
 if __name__ == '__main__':
     main()
