@@ -15,6 +15,9 @@ def main():
     # GET IP OF THE APP GIVEN THE NAME
     APPNAME="testAppPrediction"
     appIP = interface.getAppIPbyName(APPNAME)['data']
+    
+    appIP = "127.0.0.1"
+    
     print("[+] AppIP:", appIP)
 
     # CALL THE APP
@@ -22,32 +25,28 @@ def main():
     retry = Retry(connect=3, backoff_factor=0.5)
     adapter = HTTPAdapter(max_retries=retry)
     s.mount('http://', adapter)
+    _appURL = "http://" + appIP + ":5000/run-app"
 
     lst_x = []; lst_y = []; lst_CPU = []
-    step = [5, 10, 20, 50, 75, 100, 150, 200, 350, 500, 750, 1000]#, 2000, 5000]
-    step = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
-    for NB_REQUEST in step: 
-        avgtime = 0
-        avgCPU = 0
-        print(NB_REQUEST)
-        for i in range(0, NB_REQUEST):
-            _appURL = "http://" + appIP + ":5000/run-app"
-            
-            st = time.time()
-            resp = s.get(url=_appURL)
-            ed = time.time()
-            
-            l1, l2, l3 = psutil.getloadavg()
-            avgCPU += (l3/os.cpu_count()) * 100
-            avgtime += (ed-st)
-            
-        lst_y.append(avgtime/NB_REQUEST)
-        lst_x.append(NB_REQUEST)
-        lst_CPU.append(avgCPU/NB_REQUEST)
+    NB_REQUEST = 100
+    for i in range(0, NB_REQUEST): 
+        
+        st = time.time()
+        resp = s.get(url=_appURL)
+        ed = time.time()
+        
+        l1, l2, l3 = psutil.getloadavg()
+        CPU = (l3/os.cpu_count()) * 100
+        
+        tim = (ed-st)
+    
+        lst_y.append(tim)
+        lst_x.append(i)
+        lst_CPU.append(CPU)
         #print('[+] Message from App:',resp.text)
 
-    plotResponseTime(len(step), lst_x, lst_y, "App prediction - Average request time")
-    plotResponseTime(len(step), lst_x, lst_CPU, "App prediction - Average CPU time")
+    plotResponseTime(NB_REQUEST, lst_x, lst_y, "App prediction - Average request time")
+    #plotResponseTime(NB_REQUEST, lst_x, lst_CPU, "App prediction - Average CPU time")
 
 
 def plotResponseTime(NB_REQUEST, lst_x, lst_y, title):

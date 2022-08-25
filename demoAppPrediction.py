@@ -10,8 +10,12 @@ import pandas as pd
 import random
 import datetime as dt
 from datetime import timedelta, date
+
+import pickle
 from darts import TimeSeries
 from darts.models import ExponentialSmoothing
+from darts.models import RNNModel
+
 
 """
 ========================================================
@@ -68,6 +72,12 @@ def byeSignalToAPI():
 @app.route('/hi')
 def query_example():
     return 'Hello there'
+
+@app.route('/delete-all')
+def delete_all():
+    res = interface.deleteAllData()
+    return res
+
 
 @app.route('/send-ip')
 def send_ip():
@@ -130,15 +140,25 @@ def makePrediction(data):
     print("Test set size:", len(val))
 
     model = ExponentialSmoothing()
+    #model = RNNModel(input_chunk_length=4)
 
     print("[+] Fitting model for timeseries prediction")
     model.fit(train) # PROB
+    
+    print("[+] Saving model")
+    model.save("fitted_model.pt")
+    sendTrainedModel(model)
     prediction = model.predict(len(val), num_samples=len(times))
     
     try:
         return prediction.values()
     except:
         return None
+
+def sendTrainedModel(model):
+    dict = {'values': [{'id': "999999", 'date': 1000, 'parameterId': "999999", 'value': model}]}
+    interface.postDataFromSingleDeviceDict("192.168.56.1", 1000, "model", dict)
+    print("[+] Model sent")
 
 if __name__ == '__main__':
     main()

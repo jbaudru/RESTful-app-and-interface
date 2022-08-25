@@ -100,6 +100,10 @@ class ApplicationInterface:
         url= self.URL + "/" + str(ID)
         return self.delete(url)
     
+    def deleteAllData(self):
+        url= self.URL + "/all/"
+        return self.delete(url)
+    
     #---------------------------------------------------
     def deleteListOfMessageByDate(self, date):   
         """Removes data based on their date
