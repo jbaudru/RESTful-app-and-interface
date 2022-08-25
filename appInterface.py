@@ -100,6 +100,7 @@ class ApplicationInterface:
         url= self.URL + "/" + str(ID)
         return self.delete(url)
     
+    #---------------------------------------------------
     def deleteAllData(self):
         url= self.URL + "/all/"
         return self.delete(url)

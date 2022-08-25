@@ -11,7 +11,9 @@ import random
 import datetime as dt
 from datetime import timedelta, date
 
+import json
 import pickle
+from collections import OrderedDict
 from darts import TimeSeries
 from darts.models import ExponentialSmoothing
 from darts.models import RNNModel
@@ -119,7 +121,7 @@ def makePrediction(data):
         
     today = date.today()
     d1 = today.strftime("%Y-%m-%d")
-    lastweek = (today - timedelta(days=50))
+    lastweek = (today - timedelta(days=100))
     times = pd.date_range(str(lastweek).replace("-",""), str(d1).replace("-",""), freq="D")
     
     newdf = pd.DataFrame()
@@ -140,13 +142,11 @@ def makePrediction(data):
     print("Test set size:", len(val))
 
     model = ExponentialSmoothing()
-    #model = RNNModel(input_chunk_length=4)
 
     print("[+] Fitting model for timeseries prediction")
     model.fit(train) # PROB
     
-    print("[+] Saving model")
-    model.save("fitted_model.pt")
+    print("[+] Send model to API")
     sendTrainedModel(model)
     prediction = model.predict(len(val), num_samples=len(times))
     
@@ -156,8 +156,18 @@ def makePrediction(data):
         return None
 
 def sendTrainedModel(model):
-    dict = {'values': [{'id': "999999", 'date': 1000, 'parameterId': "999999", 'value': model}]}
-    interface.postDataFromSingleDeviceDict("192.168.56.1", 1000, "model", dict)
+    print("[+] Saving model")
+    #model.save("fitted_model.pt")
+    print(model)
+    pickle.dump(model, open("fitted_model.pkl", "wb"))
+    
+    with open("fitted_model.pkl", 'rb') as infile:
+        obj = pickle.load(infile)
+    print(obj)
+
+    dict = {'values': [{'id': "999999", 'date': 1000, 'parameterId': "999999", 'value': str(obj)}]}
+    interface.postDataFromSingleDeviceDict("0.0.0.0", 1000, "model", dict)
+    #interface.postDataFromSingleDevice("0.0.0.0", 1000, "model", "fitted_model.json")
     print("[+] Model sent")
 
 if __name__ == '__main__':
