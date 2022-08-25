@@ -109,7 +109,7 @@ def makePrediction(data):
         
     today = date.today()
     d1 = today.strftime("%Y-%m-%d")
-    lastweek = (today - timedelta(days=100))
+    lastweek = (today - timedelta(days=50))
     times = pd.date_range(str(lastweek).replace("-",""), str(d1).replace("-",""), freq="D")
     
     newdf = pd.DataFrame()
