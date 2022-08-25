@@ -61,13 +61,12 @@ def getRandomDate(lenght):
     tmpdates = tmpdates[:lenght]
     for dat in tmpdates:
         dates.append(int(round(dat.timestamp())))
-        #dates.append(int(str(date).split(" ")[0].replace("-","")))
     return dates
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Process args for edge computing project")
     parser.add_argument("--v", help="Verbose (0/1)", type=int, default=0)
     parser.add_argument("--min", help="Send data every x minutes (int)", type=int, default=5)
-    parser.add_argument("--n", help="Number of data to send at each iteration (int)", type=int, default=14)
+    parser.add_argument("--n", help="Number of data to send at each iteration (int)", type=int, default=100)
     args = parser.parse_args()
     main(args)

@@ -106,25 +106,35 @@ def makePrediction(data):
 
     df["date"]=dates; df["temp"]=temp
     df = df.drop_duplicates(subset=['date'])
-    
-    size_pred = 7 # Number of day
-
+        
     today = date.today()
     d1 = today.strftime("%Y-%m-%d")
-    lastweek = (today - timedelta(days=14))
-
-    #end = str(dt.date(2000,4,9) + dt.timedelta(days=14)).replace("-","")
+    lastweek = (today - timedelta(days=100))
     times = pd.date_range(str(lastweek).replace("-",""), str(d1).replace("-",""), freq="D")
-
-    series = TimeSeries.from_dataframe(df, 'date', 'temp', fill_missing_dates=True, freq=None)
+    
+    newdf = pd.DataFrame()
+    newdates = []; newtemp = []
+    for index, row in df.iterrows():
+        if(row["date"].replace("-","") in times):
+            newdates.append(row["date"])
+            newtemp.append(row["temp"])
+    newdf["date"]=newdates; newdf["temp"]=newtemp
+    
+    size_pred = 7 # Number of day    
+    print("Times size:", len(times))
+    
+    series = TimeSeries.from_dataframe(newdf, 'date', 'temp', fill_missing_dates=True, freq=None)
     train, val = series[:-size_pred], series[-size_pred:]
+
+    print("Train set size:",len(train))
+    print("Test set size:", len(val))
 
     model = ExponentialSmoothing()
 
     print("[+] Fitting model for timeseries prediction")
-    model.fit(train)
+    model.fit(train) # PROB
     prediction = model.predict(len(val), num_samples=len(times))
-
+    
     try:
         return prediction.values()
     except:
