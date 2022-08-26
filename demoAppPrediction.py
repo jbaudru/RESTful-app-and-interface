@@ -16,7 +16,6 @@ import pickle
 from collections import OrderedDict
 from darts import TimeSeries
 from darts.models import ExponentialSmoothing
-from darts.models import RNNModel
 
 
 """
