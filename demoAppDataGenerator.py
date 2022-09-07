@@ -30,6 +30,7 @@ https://github.com/jbaudru & https://github.com/llucbono
 """
 
 URL = "http://192.168.0.219:8000/ec/payloads"
+URL = "http://192.168.56.1:8000/ec/payloads"
 interface = ApplicationInterface(URL)
 
 def main(args):

@@ -14,9 +14,12 @@ from datetime import timedelta, date
 import json
 import pickle
 from collections import OrderedDict
-from darts import TimeSeries
-from darts.models import ExponentialSmoothing
 
+from keras.models import Sequential
+from keras.layers import Dense, SimpleRNN
+from keras.callbacks import EarlyStopping
+import numpy as np 
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 """
 ========================================================
@@ -44,6 +47,7 @@ https://github.com/jbaudru & https://github.com/llucbono
 """
 # TO CONNECT TO API to get or post DATA
 URL = "http://192.168.0.219:8000/ec/payloads"
+URL = "http://192.168.56.1:8000/ec/payloads"
 LOCAL_IP = "192.168.0.219" #socket.gethostbyname(socket.gethostname())#"192.168.0.219" #IP OF THNE APP
 APPNAME="demoAppPrediction"
 
@@ -120,53 +124,70 @@ def makePrediction(data):
         
     today = date.today()
     d1 = today.strftime("%Y-%m-%d")
-    lastweek = (today - timedelta(days=100))
-    times = pd.date_range(str(lastweek).replace("-",""), str(d1).replace("-",""), freq="D")
+    starting = (today - timedelta(days=300))
+    times = pd.date_range(str(starting).replace("-",""), str(d1).replace("-",""), freq="D")
     
     newdf = pd.DataFrame()
     newdates = []; newtemp = []
     for index, row in df.iterrows():
         if(row["date"].replace("-","") in times):
-            newdates.append(row["date"])
+            newdates.append(int(row["date"].replace("-","")))
             newtemp.append(row["temp"])
     newdf["date"]=newdates; newdf["temp"]=newtemp
-    
-    size_pred = 7 # Number of day    
-    print("Times size:", len(times))
-    
-    series = TimeSeries.from_dataframe(newdf, 'date', 'temp', fill_missing_dates=True, freq=None)
-    train, val = series[:-size_pred], series[-size_pred:]
+        
+    print("Dataset:", len(newdf))
+    #Split data set into testing dataset and train dataset
+    train_size = 150
+    #train, test =newdf.values[0:train_size,:],newdf.values[train_size:len(newdf.values),:]
+    train, test = newdf.iloc[:train_size], newdf.iloc[train_size:]
+    # setup look_back window 
 
-    print("Train set size:",len(train))
-    print("Test set size:", len(val))
-
-    model = ExponentialSmoothing()
-
-    print("[+] Fitting model for timeseries prediction")
-    model.fit(train) # PROB
+    #convert dataset into right shape in order to input into the DNN
+    trainY, trainX = np.array(train["temp"].values.tolist()), np.array(train["date"].values.tolist())
+    testY, testX = np.array(test["temp"].values.tolist()), np.array(test["date"].values.tolist())
+        
+    model = model_dnn()
     
-    print("[+] Send model to API")
+    history=model.fit(trainX,trainY, epochs=100, batch_size=30, verbose=1, validation_data=(testX,testY),callbacks=[EarlyStopping(monitor='val_loss', patience=10)],shuffle=False)
+    
+    train_predict = model.predict(trainX)
+    test_predict = model.predict(testX)
+    print('Train Root Mean Squared Error(RMSE): %.2f; Train Mean Absolute Error(MAE) : %.2f '
+        % (np.sqrt(mean_squared_error(trainY, train_predict[:,0])), mean_absolute_error(trainY, train_predict[:,0])))
+    print('Test Root Mean Squared Error(RMSE): %.2f; Test Mean Absolute Error(MAE) : %.2f ' 
+        % (np.sqrt(mean_squared_error(testY, test_predict[:,0])), mean_absolute_error(testY, test_predict[:,0])))
+
     sendTrainedModel(model)
-    prediction = model.predict(len(val), num_samples=len(times))
     
     try:
-        return prediction.values()
+        return test_predict
     except:
         return None
 
+
+# EXAMPLE OF MODEL, THIS MODEL AND THE PREDICTION ARE VERY BAD - This for example purpose
+def model_dnn():
+    model=Sequential()
+    model.add(Dense(units=32, input_dim=1, activation='relu'))
+    model.add(Dense(8, activation='relu'))
+    model.add(Dense(8, activation='relu'))
+    model.add(Dense(1))
+    model.compile(loss='mean_squared_error',  optimizer='adam',metrics = ['mse', 'mae'])
+    return model
+
+
+
 def sendTrainedModel(model):
     print("[+] Saving model")
-    #model.save("fitted_model.pt")
-    print(model)
-    pickle.dump(model, open("fitted_model.pkl", "wb"))
-    
-    with open("fitted_model.pkl", 'rb') as infile:
-        obj = pickle.load(infile)
-    print(obj)
 
-    dict = {'values': [{'id': "999999", 'date': 1000, 'parameterId': "999999", 'value': str(obj)}]}
+    model_json = model.to_json()
+    with open("fitted_model.json", "w") as json_file:
+        json_file.write(model_json)
+    model.save_weights("fitted_model.h5")
+
+    dict = {'values': [{'id': "999999", 'date': 1000, 'parameterId': "999999", 'value': model_json}]}
     interface.postDataFromSingleDeviceDict("0.0.0.0", 1000, "model", dict)
-    #interface.postDataFromSingleDevice("0.0.0.0", 1000, "model", "fitted_model.json")
+    
     print("[+] Model sent")
 
 if __name__ == '__main__':
