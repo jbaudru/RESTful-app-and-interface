@@ -12,9 +12,7 @@ import datetime as dt
 from datetime import timedelta, date
 
 import json
-import pickle
-from collections import OrderedDict
-
+import h5_to_json as h5j
 from keras.models import Sequential
 from keras.layers import Dense, SimpleRNN
 from keras.callbacks import EarlyStopping
@@ -179,14 +177,17 @@ def model_dnn():
 
 def sendTrainedModel(model):
     print("[+] Saving model")
-
+    
     model_json = model.to_json()
-    with open("fitted_model.json", "w") as json_file:
-        json_file.write(model_json)
-    model.save_weights("fitted_model.h5")
-
     dict = {'values': [{'id': "999999", 'date': 1000, 'parameterId': "999999", 'value': model_json}]}
-    interface.postDataFromSingleDeviceDict("0.0.0.0", 1000, "model", dict)
+    interface.postDataFromSingleDeviceDict("0.0.0.0", 1000, "ai_model", dict)
+    
+    model.save_weights("fitted_model.h5")
+    model_weight = h5j.h5_to_dict('fitted_model.h5', data_dir='tmp_data')
+    # h5j.dict_to_h5(X, 'file1_new.h5', data_dir='tmp_data')
+    
+    dict = {'values': [{'id': "999999", 'date': 1000, 'parameterId': "999999", 'value': model_weight}]}
+    interface.postDataFromSingleDeviceDict("0.0.0.0", 1000, "ai_weight", dict)
     
     print("[+] Model sent")
 
