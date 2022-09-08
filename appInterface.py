@@ -11,6 +11,8 @@ Note: To generate this doc use the command: pycco appInterface.py -p
 import requests
 from requests.structures import CaseInsensitiveDict
 import json
+import h5_to_json as h5j
+import psutil
 
 class ApplicationInterface:        
     def __init__(self, url):
@@ -179,13 +181,12 @@ class ApplicationInterface:
     #---------------------------------------------------
     #---------------------------------------------------
     
-    def postIP(self, ip: str, date: int, type: str, appname: str):
+    def postIP(self, ip: str, date: int, appname: str):
         """Send the IP of an application to the database of a node
 
         Args:
             ip (str): IP of the sender device
             date (int): timestamp of the data
-            type (str): type of the data (Should be : 'appIP')
             appname (str): name of the application
         Returns:
             json: post data send to the database
@@ -193,12 +194,65 @@ class ApplicationInterface:
         url = self.URL + "/appIP/"
         dict = {'values': [{'id': "0", 'date': 0, 'parameterId': "0", 'value': appname}]}
         try:
-            DATA = {'ip':ip, 'date':date, 'type':type, 'values':dict["values"]}
+            DATA = {'ip':ip, 'date':date, 'type': 'appIP', 'values':dict["values"]}
             json_object = self.dumpData(DATA)
             return self.post(url, json_object)
         except:
             print("[Error] - Exception occur when trying to post the IP of the application")
             return url
+    
+    #---------------------------------------------------
+    def postUse(self, ip: str, date: int, appname: str):
+        """Send the CPU and RAM use of an application to the database of a node
+
+        Args:
+            ip (str): IP of the sender device
+            date (int): timestamp of the data
+            appname (str): name of the application
+        Returns:
+            json: post data send to the database
+        """
+        url = self.URL + "/appUse/"
+        cpu = str(psutil.cpu_percent(4))
+        ram = str(psutil.virtual_memory()[2])
+        dat = {"APPNAME":appname, "CPU":cpu, "RAM": ram}
+        dict = {'values': [{'id': "0", 'date': 0, 'parameterId': "0", 'value': dat}]}
+        try:
+            DATA = {'ip':ip, 'date':date, 'type': 'appUse', 'values':dict["values"]}
+            json_object = self.dumpData(DATA)
+            return self.post(url, json_object)
+        except:
+            print("[Error] - Exception occur when trying to post the use of the application")
+            return url
+        
+    #---------------------------------------------------
+    def postKerasModel(self, model, ip: str, date: int, appname: str):
+        """Send the Keras trained model to the database of a node
+
+        Args:
+            ip (str): IP of the sender device
+            date (int): timestamp of the data
+            appname (str): name of the application
+        Returns:
+            json: post data send to the database
+        """
+        url = self.URL + "/appModel/"
+        model_json = model.to_json()
+        dict_struct= {'values': [{'id': "0", 'date': 0, 'parameterId': "0", 'value': model_json}]}
+        model.save_weights("fitted_model.h5")
+        model_weight = h5j.h5_to_dict('fitted_model.h5', data_dir='tmp_data')
+        dict_weight= {'values': [{'id': "0", 'date': 0, 'parameterId': "0", 'value': model_weight}]}
+        try:
+            DATASTRUCT = {'ip':ip, 'date':date, 'type': 'model_struct', 'values':dict_struct["values"]}
+            json_object_struct = self.dumpData(DATASTRUCT)
+            resstruct = self.post(url, json_object_struct)
+            DATAWEIGHT = {'ip':ip, 'date':date, 'type': 'model_weight', 'values':dict_weight["values"]}
+            json_object_weight = self.dumpData(DATAWEIGHT)
+            resweight = self.post(url, json_object_weight)
+            return resstruct, resweight
+        except:
+            print("[Error] - Exception occur when trying to post the model of the application")
+            return url    
     
     #---------------------------------------------------
     def deleteAppIPbyName(self, name):
@@ -224,6 +278,19 @@ class ApplicationInterface:
             json: data send to the database
         """
         url = self.URL + "/appIP/?type=" + name
+        return self.get(url)
+
+    #---------------------------------------------------
+    def getAppUsebyName(self, name):
+        """Returns the IP of an application in the database of a node based on its name
+
+        Args:
+            name (str): name of the application
+
+        Returns:
+            json: data send to the database
+        """
+        url = self.URL + "/appUse/?type=" + name
         return self.get(url)
     
     
@@ -318,3 +385,4 @@ class ApplicationInterface:
             json: dictionary in json format
         """
         return json.dumps(dict, indent = 4)
+    

@@ -5,13 +5,17 @@ from urllib3.util.retry import Retry
 
 
 API_URL = "http://192.168.0.219:8000/ec/payloads"
+API_URL = "http://192.168.56.1:8000/ec/payloads"
 interface = ApplicationInterface(API_URL)
 
 
 # GET IP OF THE APP GIVEN THE NAME
-APPNAME="testAppPrediction"
+APPNAME="demoAppPrediction"
 appIP = interface.getAppIPbyName(APPNAME)['data']
 print("[+] AppIP:", appIP)
+
+appUSE = interface.getAppUsebyName(APPNAME)['data']
+print("[+] AppUSE: CPU:", appUSE[0], "| RAM:", appUSE[1])
 
 # CALL THE APP
 s = requests.Session()
