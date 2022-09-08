@@ -292,6 +292,20 @@ class ApplicationInterface:
         """
         url = self.URL + "/appUse/?type=" + name
         return self.get(url)
+
+    #---------------------------------------------------
+    def getKerasModel(self, ip):
+        """Returns the IP of an application in the database of a node based on its name
+
+        Args:
+            name (str): name of the application
+
+        Returns:
+            json: data send to the database
+        """
+        url = self.URL + "/appModel/?type=" + ip
+        return self.get(url)
+    
     
     
     # GENERIC FUNCTIONS

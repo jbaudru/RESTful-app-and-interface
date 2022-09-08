@@ -17,6 +17,12 @@ print("[+] AppIP:", appIP)
 appUSE = interface.getAppUsebyName(APPNAME)['data']
 print("[+] AppUSE: CPU:", appUSE[0], "| RAM:", appUSE[1])
 
+# Example of getting appModel
+appModel = interface.getKerasModel(appIP)['data']
+print("[+] AppModel struct: ", appModel[0])
+print("[+] AppModel weight: ", appModel[1])
+
+
 # CALL THE APP
 s = requests.Session()
 retry = Retry(connect=3, backoff_factor=0.5)
