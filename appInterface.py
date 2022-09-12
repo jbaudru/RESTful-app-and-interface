@@ -13,6 +13,7 @@ from requests.structures import CaseInsensitiveDict
 import json
 import h5_to_json as h5j
 import psutil
+import keras
 
 class ApplicationInterface:        
     def __init__(self, url):
@@ -104,6 +105,11 @@ class ApplicationInterface:
     
     #---------------------------------------------------
     def deleteAllData(self):
+        """Delete all the data in the database
+
+        Returns:
+            json: data of the node
+        """
         url= self.URL + "ec/payloads/all/"
         return self.delete(url)
     
@@ -239,6 +245,8 @@ class ApplicationInterface:
         url = self.URL + "ec/appdata/appModel/"
         model_json = model.to_json()
         dict_struct= {'values': [{'id': "0", 'date': 0, 'parameterId': "0", 'value': model_json}]}
+        
+        # Essayer fichier .tf
         model.save_weights("fitted_model.h5")
         model_weight = h5j.h5_to_dict('fitted_model.h5', data_dir='tmp_data')
         dict_weight= {'values': [{'id': "0", 'date': 0, 'parameterId': "0", 'value': model_weight}]}
@@ -304,8 +312,14 @@ class ApplicationInterface:
             json: data send to the database
         """
         url = self.URL + "ec/appdata/appModel/?type=" + ip
-        return self.get(url)
-    
+        res = self.get(url)
+        
+        model = keras.models.model_from_json(res['data'][0])
+        
+        # Essayer fichier .tf
+        h5j.dict_to_h5(dict(res['data'][1]), 'tmp.h5', data_dir='tmp_data')
+        model.load_weights('tmp.h5')
+        return model
     
     
     # GENERIC FUNCTIONS
