@@ -40,8 +40,8 @@ https://github.com/jbaudru & https://github.com/llucbono
 ========================================================
 """
 # TO CONNECT TO API to get or post DATA
-URL = "http://192.168.0.219:8000/ec/payloads"
-URL = "http://192.168.56.1:8000/ec/payloads"
+URL = "http://192.168.0.219:8000/"
+URL = "http://192.168.56.1:8000/"
 LOCAL_IP = "192.168.0.219" #socket.gethostbyname(socket.gethostname())#"192.168.0.219" #IP OF THNE APP
 APPNAME="demoAppPrediction"
 

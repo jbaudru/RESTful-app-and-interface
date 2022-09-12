@@ -34,7 +34,7 @@ class ApplicationInterface:
         Returns:
             json: data of the node
         """
-        url= self.URL + "/" + str(ID)
+        url= self.URL + "ec/payloads/" + str(ID)
         return self.get(url)
 
     #---------------------------------------------------
@@ -47,7 +47,7 @@ class ApplicationInterface:
         Returns:
             json: data of the node
         """
-        url= self.URL + "/sensor/?ip=" + str(IP)
+        url= self.URL + "ec/payloads/sensor/?ip=" + str(IP)
         return self.get(url)
     
     #---------------------------------------------------
@@ -60,7 +60,7 @@ class ApplicationInterface:
         Returns:
             json: data of the nodes
         """
-        url= self.URL + "/offload/?date=" + str(date)
+        url= self.URL + "ec/payloads/offload/?date=" + str(date)
         return self.get(url)
     
     #---------------------------------------------------
@@ -73,7 +73,7 @@ class ApplicationInterface:
         Returns:
             json: data of the nodes
         """
-        url= self.URL + "/sensor_type/?type=" + str(typ)
+        url= self.URL + "ec/payloads/sensor_type/?type=" + str(typ)
         return self.get(url)
 
     #---------------------------------------------------
@@ -86,7 +86,7 @@ class ApplicationInterface:
         Returns:
             json: data of the nodes
         """
-        url= self.URL + "/valid_items/?valid=" + str(val)
+        url= self.URL + "ec/payloads/valid_items/?valid=" + str(val)
         return self.get(url)
     
     #---------------------------------------------------
@@ -99,12 +99,12 @@ class ApplicationInterface:
         Returns:
             json: data of the node
         """
-        url= self.URL + "/" + str(ID)
+        url= self.URL + "ec/payloads/" + str(ID)
         return self.delete(url)
     
     #---------------------------------------------------
     def deleteAllData(self):
-        url= self.URL + "/all/"
+        url= self.URL + "ec/payloads/all/"
         return self.delete(url)
     
     #---------------------------------------------------
@@ -117,7 +117,7 @@ class ApplicationInterface:
         Returns:
             json: data of the node
         """ 
-        url= self.URL + "/offload/?date=" + str(date)
+        url= self.URL + "ec/payloads/offload/?date=" + str(date)
         return self.delete(url)
     
     #---------------------------------------------------
@@ -133,7 +133,7 @@ class ApplicationInterface:
         Returns:
             json: data send to the database
         """
-        url = self.URL + "/"
+        url = self.URL + "ec/payloads/"
         val = self.getLocalData(jsonfile)
         DATA = {'ip':ip, 'date':date, 'type':type, 'values':val["values"]}
         json_object = self.dumpData(DATA)
@@ -152,7 +152,7 @@ class ApplicationInterface:
         Returns:
             json: data send to the database
         """
-        url = self.URL + "/"
+        url = self.URL + "ec/payloads/"
         try:
             DATA = {'ip':ip, 'date':date, 'type':type, 'values':dict["values"]}
             json_object = self.dumpData(DATA)
@@ -171,7 +171,7 @@ class ApplicationInterface:
         Returns:
             json: data send to the database
         """
-        url = self.URL + "/multiple/"
+        url = self.URL + "ec/payloads/multiple/"
         DATA = self.getLocalData(jsonfile)
         json_object = self.dumpData(DATA)
         return self.post(url, json_object)
@@ -191,7 +191,7 @@ class ApplicationInterface:
         Returns:
             json: post data send to the database
         """
-        url = self.URL + "/appIP/"
+        url = self.URL + "ec/appdata/appIP/"
         dict = {'values': [{'id': "0", 'date': 0, 'parameterId': "0", 'value': appname}]}
         try:
             DATA = {'ip':ip, 'date':date, 'type': 'appIP', 'values':dict["values"]}
@@ -212,7 +212,7 @@ class ApplicationInterface:
         Returns:
             json: post data send to the database
         """
-        url = self.URL + "/appUse/"
+        url = self.URL + "ec/appdata/appUse/"
         cpu = str(psutil.cpu_percent(4))
         ram = str(psutil.virtual_memory()[2])
         dat = {"APPNAME":appname, "CPU":cpu, "RAM": ram}
@@ -236,7 +236,7 @@ class ApplicationInterface:
         Returns:
             json: post data send to the database
         """
-        url = self.URL + "/appModel/"
+        url = self.URL + "ec/appdata/appModel/"
         model_json = model.to_json()
         dict_struct= {'values': [{'id': "0", 'date': 0, 'parameterId': "0", 'value': model_json}]}
         model.save_weights("fitted_model.h5")
@@ -264,7 +264,7 @@ class ApplicationInterface:
         Returns:
             json: data send to the database
         """
-        url = self.URL + "/appIP/?type=" + name
+        url = self.URL + "ec/appdata/appIP/?type=" + name
         return self.delete(url)
     
     #---------------------------------------------------
@@ -277,7 +277,7 @@ class ApplicationInterface:
         Returns:
             json: data send to the database
         """
-        url = self.URL + "/appIP/?type=" + name
+        url = self.URL + "ec/appdata/appIP/?type=" + name
         return self.get(url)
 
     #---------------------------------------------------
@@ -290,7 +290,7 @@ class ApplicationInterface:
         Returns:
             json: data send to the database
         """
-        url = self.URL + "/appUse/?type=" + name
+        url = self.URL + "ec/appdata/appUse/?type=" + name
         return self.get(url)
 
     #---------------------------------------------------
@@ -303,7 +303,7 @@ class ApplicationInterface:
         Returns:
             json: data send to the database
         """
-        url = self.URL + "/appModel/?type=" + ip
+        url = self.URL + "ec/appdata/appModel/?type=" + ip
         return self.get(url)
     
     

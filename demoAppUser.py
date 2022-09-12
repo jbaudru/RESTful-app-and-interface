@@ -4,8 +4,8 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 
-API_URL = "http://192.168.0.219:8000/ec/payloads"
-API_URL = "http://192.168.56.1:8000/ec/payloads"
+API_URL = "http://192.168.0.219:8000/"
+API_URL = "http://192.168.56.1:8000/"
 interface = ApplicationInterface(API_URL)
 
 
@@ -22,6 +22,7 @@ appModel = interface.getKerasModel(appIP)['data']
 print("[+] AppModel struct: ", appModel[0])
 print("[+] AppModel weight: ", appModel[1])
 
+#TODO : Use the model example
 
 # CALL THE APP
 s = requests.Session()

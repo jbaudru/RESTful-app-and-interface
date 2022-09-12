@@ -9,7 +9,7 @@ import os
 import psutil
 
 def main():
-    API_URL = "http://192.168.0.219:8000/ec/payloads"
+    API_URL = "http://192.168.0.219:8000/"
     interface = ApplicationInterface(API_URL)
 
     # GET IP OF THE APP GIVEN THE NAME

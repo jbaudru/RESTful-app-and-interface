@@ -31,7 +31,7 @@ https://github.com/jbaudru & https://github.com/llucbono
 ========================================================
 """
 
-URL = "http://192.168.0.219:8000/ec/payloads"
+URL = "http://192.168.0.219:8000/"
 interface = ApplicationInterface(URL)
 
 def main(args):
