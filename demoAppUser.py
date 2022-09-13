@@ -17,22 +17,20 @@ appUSE = interface.getAppUsebyName(APPNAME)['data']
 print("[+] AppUSE: CPU:", appUSE[0], "| RAM:", appUSE[1])
 
 # Example : Using the model trained by a remote app
-appModel = interface.getKerasModel(appIP)['data']
-print("[+] Trained model received from the app:", type(appModel))
+model = interface.getKerasModel(appIP)
+print(model.summary())
+print("[+] Trained model received from the app:", type(model))
 
-#TODO : Use the model example
 
-"""
 # Example : Call some function of the app using its IP
+"""
 s = requests.Session()
 retry = Retry(connect=3, backoff_factor=0.5)
 adapter = HTTPAdapter(max_retries=retry)
 s.mount('http://', adapter)
-
 _appURL = "http://" + appIP + ":5000/run-app"
 resp = s.get(url=_appURL)
 print('[+] Message from App:',resp.text)
-
 _appURL = "http://" + appIP + ":5000/hi"
 resp = s.get(url=_appURL)
 print('[+] Message from App:',resp.text)

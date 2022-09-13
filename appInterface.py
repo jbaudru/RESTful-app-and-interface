@@ -8,9 +8,11 @@ Note: To generate this doc use the command: pycco appInterface.py -p
  
 """
 
+from turtle import window_height
 import requests
 from requests.structures import CaseInsensitiveDict
 import json
+import numpy as np
 import h5_to_json as h5j
 import psutil
 import keras
@@ -246,10 +248,11 @@ class ApplicationInterface:
         model_json = model.to_json()
         dict_struct= {'values': [{'id': "0", 'date': 0, 'parameterId': "0", 'value': model_json}]}
         
-        # Essayer fichier .tf
-        model.save_weights("fitted_model.h5")
-        model_weight = h5j.h5_to_dict('fitted_model.h5', data_dir='tmp_data')
-        dict_weight= {'values': [{'id': "0", 'date': 0, 'parameterId': "0", 'value': model_weight}]}
+        weights = []
+        for layer in model.layers: 
+            weights.append([layer.get_weights()[0].tolist(), layer.get_weights()[1].tolist()])
+        
+        dict_weight= {'values': [{'id': "0", 'date': 0, 'parameterId': "0", 'value': weights}]}
         try:
             DATASTRUCT = {'ip':ip, 'date':date, 'type': 'model_struct', 'values':dict_struct["values"]}
             json_object_struct = self.dumpData(DATASTRUCT)
@@ -315,10 +318,11 @@ class ApplicationInterface:
         res = self.get(url)
         
         model = keras.models.model_from_json(res['data'][0])
-        
-        # Essayer fichier .tf
-        h5j.dict_to_h5(dict(res['data'][1]), 'tmp.h5', data_dir='tmp_data')
-        model.load_weights('tmp.h5')
+        weights = res["data"][1]
+        for i in range(0,len(weights)):
+            wg0 = np.array(weights[i][0], dtype=object)
+            wg1 = np.array(weights[i][1], dtype=object)
+            model.layers[i].set_weights([wg0, wg1])
         return model
     
     
