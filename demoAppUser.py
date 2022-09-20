@@ -21,8 +21,6 @@ model = interface.getKerasModel(appIP)
 print(model.summary())
 print("[+] Trained model received from the app:", type(model))
 
-
-# Example : Call some function of the app using its IP
 """
 s = requests.Session()
 retry = Retry(connect=3, backoff_factor=0.5)

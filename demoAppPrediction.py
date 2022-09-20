@@ -71,6 +71,7 @@ def byeSignalToAPI():
 @app.route('/hi')
 def query_example():
     return 'Hello there'
+
 @app.route('/delete-all')
 def delete_all():
     res = interface.deleteAllData()
