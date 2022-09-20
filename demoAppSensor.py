@@ -6,25 +6,6 @@ import pandas as pd
 
 from appInterface import ApplicationInterface
 
-"""
-========================================================
-Note:
-------
-The purpose of this application is to show how
-to use the python interface to interact with the API.
-
-The goal of this application is to generate data
-according to a certain distribution and to send
-them at regular intervals to a network node.
-
-Command:
---------
-python .\demoAppDataGenerator.py --min 1 --n 5
-
-https://github.com/jbaudru & https://github.com/llucbono
-========================================================
-"""
-
 URL = "http://192.168.0.219:8000/"
 URL = "http://192.168.56.1:8000/"
 interface = ApplicationInterface(URL)
@@ -45,12 +26,10 @@ def sendData(nbdata):
 
 def getRandomDate(lenght):
     dates = []
-
     today = date.today()
     d1 = today.strftime("%Y-%m-%d")
     lastweek = (today - timedelta(days=lenght))
     tmpdates = pd.date_range(lastweek, d1, freq='D')
-    print(tmpdates)
     tmpdates = tmpdates[:lenght]
     for dat in tmpdates:
         dates.append(int(round(dat.timestamp())))
@@ -60,6 +39,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Process args for edge computing project")
     parser.add_argument("--v", help="Verbose (0/1)", type=int, default=0)
     parser.add_argument("--min", help="Send data every x minutes (int)", type=int, default=5)
-    parser.add_argument("--n", help="Number of data to send at each iteration (int)", type=int, default=100)
+    parser.add_argument("--n", help="Number of data to send at each iteration (int)", type=int, default=500)
     args = parser.parse_args()
     main(args)

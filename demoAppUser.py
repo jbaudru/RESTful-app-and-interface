@@ -9,27 +9,19 @@ interface = ApplicationInterface(API_URL)
 
 
 # GET IP OF THE APP GIVEN THE NAME
-APPNAME="demoAppPrediction"
+APPNAME="demoEdge"
 appIP = interface.getAppIPbyName(APPNAME)['data']
-print("[+] AppIP:", appIP)
+print("[+] Edge node IP:", appIP)
 
-appUSE = interface.getAppUsebyName(APPNAME)['data']
-print("[+] AppUSE: CPU:", appUSE[0], "| RAM:", appUSE[1])
+#appUSE = interface.getAppUsebyName(APPNAME)['data']
+#print("[+] AppUSE: CPU:", appUSE[0], "| RAM:", appUSE[1])
 
-# Example : Using the model trained by a remote app
-model = interface.getKerasModel(appIP)
-print(model.summary())
-print("[+] Trained model received from the app:", type(model))
 
-"""
 s = requests.Session()
 retry = Retry(connect=3, backoff_factor=0.5)
 adapter = HTTPAdapter(max_retries=retry)
 s.mount('http://', adapter)
-_appURL = "http://" + appIP + ":5000/run-app"
+_appURL = "http://" + appIP + ":5000/predict"
 resp = s.get(url=_appURL)
-print('[+] Message from App:',resp.text)
-_appURL = "http://" + appIP + ":5000/hi"
-resp = s.get(url=_appURL)
-print('[+] Message from App:',resp.text)
-"""
+
+print('[+] Prediction from the Edge:',resp.text)
