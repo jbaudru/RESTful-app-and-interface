@@ -1,6 +1,6 @@
 # Abstraction for send and get data from application
 from appInterface import ApplicationInterface
-from flask import Flask
+from flask import Flask, redirect, url_for, request
 import atexit
 from multiprocessing import Process
 import threading
@@ -29,24 +29,10 @@ URL = "http://192.168.0.219:8000/"
 URL = "http://192.168.56.1:8000/"
 LOCAL_IP = "192.168.56.1" #socket.gethostbyname(socket.gethostname())#"192.168.0.219" #IP OF THNE APP
 LOCAL_IP = "127.0.0.1"
-APPNAME="demoEdge"
+APPNAME="demoEdgeNode"
 
 interface = ApplicationInterface(URL)
 app = Flask(__name__)
-
-class DisplayCPU(threading.Thread):
-    def run(self):
-        self.average = 0; self.count = 0
-        self.running = True
-        currentProcess = psutil.Process()
-        while self.running:
-            #print(currentProcess.cpu_percent(interval=1))
-            self.average += currentProcess.cpu_percent(interval=0.1)
-            self.count += 1
-            
-    def stop(self):
-        self.running = False
-        return self.average/self.count
 
 def startCommunication():
     server = Process(target=app.run(debug= True, port=5000))
@@ -91,7 +77,17 @@ def send_use():
         return out
     except:
         return 'DEBUG: Error sending local machine use'
-        
+    
+@app.route('/transmit',methods = ['POST'])
+def transmit():
+    if request.method == 'POST':
+      print(request)
+
+@app.route('/get',methods = ['GET'])
+def get():
+    print(request)
+    return "test"
+
 @app.route('/predict')
 def run_app():
     try:
@@ -119,29 +115,8 @@ def run_app():
         res = interface.getListOfMessageFromSensorType("deg")
         data = res['data']
 
-        #display_cpu = DisplayCPU()
-        lstx = []; lsty = []
-        """
-        for i in range(0, 200):
-            #display_cpu.start()
-            st = time.time()
-        """
         pred = makePrediction(model, data)
-        """
-            #pred = makeTrain(data)
-            elapsed_time = time.time() - st
-            print("Time:", elapsed_time)
-            #cpuuse = display_cpu.stop()
-            #print(i, "CPU%", cpuuse)
-            
-            lstx.append(elapsed_time)
-            #lstx.append(cpuuse)
-            lsty.append(i)
-        print(lstx)
-        """
-        #plotResponseTime(200, lstx, lsty, "CPU percent")
-        #plotResponseTime(200, lstx, lsty, "Execution time")
-            
+
         print("[+] Prediction made by the Edge")
         res = str(pred)
     
