@@ -19,5 +19,4 @@ WORKDIR /usr/src/app
 COPY . .
 
 CMD [ "python", "-m" , "flask", "--app=demoAppPrediction", "--debug", "run", "--host=0.0.0.0"]
-#CMD [ "python", "demoAppPrediction.py"]
 
