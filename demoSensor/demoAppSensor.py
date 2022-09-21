@@ -1,14 +1,10 @@
+from appInterface import ApplicationInterface
 from datetime import date, timedelta
-import numpy as np
 from tqdm import tqdm
+import numpy as np
 import pandas as pd
-import time 
-
-import subprocess
 import schedule
 import socket
-
-from appInterface import ApplicationInterface
 
 # docker build -t demosensor .
 # docker run demosensor
