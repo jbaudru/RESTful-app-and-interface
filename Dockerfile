@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   # psycopg2 dependencies
   libpq-dev
   
-RUN pip install --pre flask flask-restful numpy pandas requests darts
+RUN pip install --pre flask flask-restful numpy pandas requests darts requests numpy tqdm schedule tensorflow pandas psutil h5py h5_to_json keras
 WORKDIR /usr/src/app
 COPY . .
 

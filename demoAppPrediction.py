@@ -41,9 +41,9 @@ https://github.com/jbaudru & https://github.com/llucbono
 """
 # TO CONNECT TO API to get or post DATA
 URL = "http://192.168.0.219:8000/"
-URL = "http://192.168.56.1:8000/"
+URL = "http://192.168.0.192:8000/"
 LOCAL_IP = "127.0.0.2" #socket.gethostbyname(socket.gethostname())#"192.168.0.219" #IP OF THNE APP
-APPNAME="demoAppPred"
+APPNAME="demoAppPredNew"
 
 interface = ApplicationInterface(URL)
 app = Flask(__name__)
@@ -58,7 +58,7 @@ def stopCommunication(server):
 
 def hiSignalToAPI():
     startCommunication()
-    interface.postIP(LOCAL_IP,'12','appIP',APPNAME)# SEND THE IP OF THE APP TO THE API
+    interface.postIP(LOCAL_IP,'12',APPNAME)# SEND THE IP OF THE APP TO THE API
     print('[+] IP send to the API', LOCAL_IP)
 
 def byeSignalToAPI():
@@ -68,16 +68,22 @@ def byeSignalToAPI():
     
 # TEST FUNCTION
 #=======================================================================
+@app.route('/')
+def home():
+    return 'App for the training of the model is online !'
+
+
 @app.route('/hi')
 def query_example():
+    hiSignalToAPI()
     return 'Hello there'
 
 @app.route('/delete-all')
 def delete_all():
     res = interface.deleteAllData()
     return res
-#=======================================================================
 
+#=======================================================================
 @app.route('/send-ip')
 def send_ip():
     try:
@@ -97,71 +103,68 @@ def send_use():
     except:
         return 'DEBUG: Error sending local machine use'
         
+# Change here
 @app.route('/run-app')
 def run_app():
-    try:
-        # YOUR CODE HERE
-        print("[+] Getting data")
-        res = interface.getListOfMessageFromSensorType("deg")
-        data = res['data']
-        res = str(makePrediction(data))
+    #try:
+    # YOUR CODE HERE
+    print("[+] Getting data")
+    res = interface.getListOfMessageFromSensorType("test3")
+    data = res['data']
+    res = str(trainModel(data))
+    """
     except:
         res = "Application does not seem to have worked properly :/"
+    """
     return res
 
 def main():
     hiSignalToAPI()
 
-# Just a random function to demonstrate the principle
-# YOUR CODE HERE
-def makePrediction(data):
-    print("[+] Making predictions based on the data stored in the API")
-    temp = []; dates = []; newdates = []; newtemp = []; df = pd.DataFrame(); newdf = pd.DataFrame()
+
+# Change here
+def trainModel(data):
+    temp = []; dates = [];
+    newdf = pd.DataFrame()
     for dat in data:
         temp.append(dat['values'][0]['value'])
-        dat = dt.datetime.fromtimestamp(dat['values'][0]['date']).strftime('%Y-%m-%d')
-        dates.append(dat)
-    df["date"]=dates; df["temp"]=temp
-    df = df.drop_duplicates(subset=['date'])
-    today = date.today()
-    d1 = today.strftime("%Y-%m-%d")
-    starting = (today - timedelta(days=300))
-    times = pd.date_range(str(starting).replace("-",""), str(d1).replace("-",""), freq="D")
-    for _, row in df.iterrows():
-        if(row["date"].replace("-","") in times):
-            newdates.append(int(row["date"].replace("-","")))
-            newtemp.append(row["temp"])
-    newdf["date"]=newdates; newdf["temp"]=newtemp
-    
-    train_size = 150
+        dates.append(dat['values'][0]['date'])
+    newdf["date"]=dates; newdf["temp"]=temp
+        
+    train_size = 200 # As the sensor send 300 data in our example the test size is 100
     train, test = newdf.iloc[:train_size], newdf.iloc[train_size:]
-    trainY, trainX = np.array(train["temp"].values.tolist()), np.array(train["date"].values.tolist())
-    testY, testX = np.array(test["temp"].values.tolist()), np.array(test["date"].values.tolist())
+    trainX, trainY = np.array(train["temp"].values.tolist()), np.array(train["date"].values.tolist())
+    testX, testY = np.array(test["temp"].values.tolist()), np.array(test["date"].values.tolist())
     model = model_dnn()
-    history=model.fit(trainX,trainY, epochs=100, batch_size=30, verbose=1, validation_data=(testX,testY),callbacks=[EarlyStopping(monitor='val_loss', patience=10)],shuffle=False)
+    print(trainX)
+    history=model.fit(trainX,trainY, epochs=10, batch_size=2, verbose=1, validation_data=(testX,testY),shuffle=True)
+        
     """
     train_predict = model.predict(trainX)
     test_predict = model.predict(testX)
     print('Train Root Mean Squared Error(RMSE): %.2f; Train Mean Absolute Error(MAE) : %.2f '
         % (np.sqrt(mean_squared_error(trainY, train_predict[:,0])), mean_absolute_error(trainY, train_predict[:,0])))
-    print('Test Root Mean Squared Error(RMSE): %.2f; Test Mean Absolute Error(MAE) : %.2f ' 
+    print('Test Root Mean Squared Error(RMSniceoclockbe@niceoclockbeE): %.2f; Test Mean Absolute Error(MAE) : %.2f ' 
         % (np.sqrt(mean_squared_error(testY, test_predict[:,0])), mean_absolute_error(testY, test_predict[:,0])))
     """
-    interface.postKerasModel(model, LOCAL_IP, "12", APPNAME)
-    print("[+] Trained model sent")
+    
+    print("[+] Sending new model")
     try:
-        return "Model trained"
+        interface.postKerasModel(model, LOCAL_IP, "100", APPNAME)
+        print("[+] Trained model sent")
+        return "New model sent"
     except:
-        return None
+        return "Error :("
 
-# EXAMPLE OF MODEL, THIS MODEL AND THE PREDICTION ARE VERY BAD - This for example purpose
+# Change here
 def model_dnn():
     model=Sequential()
-    model.add(Dense(units=32, input_dim=1, activation='relu'))
-    model.add(Dense(8, activation='relu'))
-    model.add(Dense(8, activation='relu'))
+    model.add(Dense(units=4, input_dim=1, activation='relu'))
+    model.add(Dense(4, activation='relu'))
     model.add(Dense(1))
-    model.compile(loss='mean_squared_error',  optimizer='adam',metrics = ['mse', 'mae'])
+    model.compile(optimizer="adam",
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
     return model
 
 if __name__ == '__main__':

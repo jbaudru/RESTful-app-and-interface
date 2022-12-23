@@ -6,13 +6,15 @@ import pandas as pd
 import schedule
 import socket
 import statistics 
+import random 
 
 import matplotlib.pyplot as plt
 
+# python3.9 demoAppSensor.py
 # docker build -t demosensor .
 # docker run demosensor
 
-SERVERURL = "http://192.168.56.1:8000/"
+SERVERURL = "http://192.168.0.192:8000/" # Change here
 EDGEURL = "http://127.0.0.1:5000/"
 
 SENDING_DATA_TIME_INTER = 1 # in minutes
@@ -25,10 +27,12 @@ interface = ApplicationInterface(SERVERURL)
 def main():
     
     print("[+] Container IP : ", CONTAINER_IP)
-    
+    print("[+] Delete all old data for the experiment")
+    interface.deleteAllData() # Change here
     print("[+] Sensor running ...")
-    schedule.every(SENDING_DATA_TIME_INTER).minutes.do(lambda: sendData(NUMBER_DATA_TO_SEND))
-    schedule.every(GETTING_DATA_TIME_INTER).minutes.do(lambda: getData())
+    sendData(300)
+    #schedule.every(SENDING_DATA_TIME_INTER).minutes.do(lambda: sendData(NUMBER_DATA_TO_SEND))
+    #schedule.every(GETTING_DATA_TIME_INTER).minutes.do(lambda: getData())
     '''
     sendData(NUMBER_DATA_TO_SEND)
     getData()
@@ -70,7 +74,7 @@ def plotResponseTime(lst_x, lst_x2, lst_y, title):
 
 def getData():
     print("[+] Getting data")
-    res = interface.getListOfMessageFromSensorType("test2")
+    res = interface.getListOfMessageFromSensorType("test3") # Change here
     if(res==None):
         print("[!] Server is probably offline")
         datadict = None
@@ -80,22 +84,33 @@ def getData():
         for elem in datadict:
             data.append(elem['values'][0]['value'])
         return statistics.mean(data),statistics.stdev(data)
-        
+
+# Change here
 def sendData(nbdata):
     print("[+] Sending data")
-    mu, sigma = 15, 5 # mean and standard deviation for the normal distribution
+    mu, sigma = 0, 15 # mean and standard deviation for the normal distribution
     data = np.random.normal(mu, sigma, nbdata)
-    dates = getRandomDate(len(data))
+    y_data = getYData(data)
     pbar = tqdm(total=len(data))
     for i in range(0,len(data)):
-        dict = {'values': [{'id': str(i), 'date': dates[i], 'parameterId': str(i), 'value': data[i]}]}
-        res = interface.postDataFromSingleDeviceDict(str(CONTAINER_IP), dates[i], "test2", dict)
+        dict = {'values': [{'id': str(i), 'date': y_data[i], 'parameterId': str(i), 'value': data[i]}]}
+        res = interface.postDataFromSingleDeviceDict(str(CONTAINER_IP), y_data[i], "test3", dict)
         if(res==None):
             print("[!] Server is probably offline")
             break
         pbar.update(1)
     pbar.close()
     return statistics.mean(data),statistics.stdev(data) 
+
+# Change here
+def getYData(data):
+    y_data = []
+    for i in range(0, len(data)):
+        if(data[i]>=0):
+            y_data.append(1)
+        else:
+            y_data.append(-1)
+    return y_data
 
 def getRandomDate(lenght):
     dates = []
